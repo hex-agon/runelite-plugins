@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Unidentified Herbs
+Begone grimy herbs!
