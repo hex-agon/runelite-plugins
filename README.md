@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Nex Nostalgia
+A plugin that adds nex voice overs again.
