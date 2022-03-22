@@ -47,15 +47,11 @@ public class UnidentifiedHerbsPlugin extends Plugin {
         int itemId = itemComposition.getId();
 
         if (isGrimyHerb(itemId)) {
-            try {
-                itemComposition.setName("Herb");
-                itemComposition.setInventoryModel(ORIGINAL_UNID_MODEL);
-                itemComposition.setColorToReplace(null);
-                itemComposition.setColorToReplaceWith(null);
-                itemComposition.getInventoryActions()[0] = "Identify";
-            } catch (Exception e) {
-                log.error("Could not modify the item composition", e);
-            }
+            itemComposition.setName("Herb");
+            itemComposition.setInventoryModel(ORIGINAL_UNID_MODEL);
+            itemComposition.setColorToReplace(null);
+            itemComposition.setColorToReplaceWith(null);
+            itemComposition.getInventoryActions()[0] = "Identify";
         }
     }
 
