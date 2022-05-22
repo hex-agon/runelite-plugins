@@ -1,9 +1,12 @@
 package work.fking.unids;
 
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemID;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.PostItemComposition;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
@@ -13,6 +16,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+
+import static net.runelite.api.MenuAction.CC_OP_LOW_PRIORITY;
 
 @Slf4j
 @PluginDescriptor(
@@ -59,6 +64,15 @@ public class UnidentifiedHerbsPlugin extends Plugin {
     public void onChatMessage(ChatMessage chatMessage) {
         if (CLEAN_MESSAGE_PATTERN.matcher(chatMessage.getMessage()).matches()) {
             chatMessage.getMessageNode().setValue(CLEAN_MESSAGE_REPLACEMENT);
+        }
+    }
+
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked clicked) {
+        if (clicked.getMenuAction() == CC_OP_LOW_PRIORITY && (clicked.getItemId() == ItemID.HERB_SACK || clicked.getItemId() == ItemID.OPEN_HERB_SACK)) {
+            clicked.consume();
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You look in your herb sack and see:", null);
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Herbs", null);
         }
     }
 
