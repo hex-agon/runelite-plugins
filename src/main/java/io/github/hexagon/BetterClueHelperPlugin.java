@@ -19,7 +19,30 @@ public class BetterClueHelperPlugin extends Plugin {
 
     private static final int OBJ_PARAM_CLUE_ROW_ID = 623;
 
+    private static final int ANAGRAM_TABLE = 4;
+    private static final int ANAGRAM_COLUMN_DIFFICULTY = 1;
+    private static final int ANAGRAM_COLUMN_TEXT = 2;
+    private static final int ANAGRAM_COLUMN_SOLUTION = 3;
+    private static final int ANAGRAM_COLUMN_CHALLENGE_ANSWER = 4;
+    private static final int ANAGRAM_COLUMN_ACCESS_RESTRICTION = 4;
+
+    private static final int TARGET_NPC_TABLE = 15;
+    private static final int TARGET_NPC_COLUMN_NPC = 0;
+
+    private static final int TARGET_LOC_TABLE = 16;
+    private static final int TARGET_COORD_GRID_TABLE = 18;
+
     /*
+     * enum_4616 = clue difficulty
+     *
+     * [dbtable_4] // anagram clues
+     * column=dbcolumn_0,int,REQUIRED,INDEXED,CLIENTSIDE
+     * column=dbcolumn_1,int,REQUIRED,CLIENTSIDE // clue difficulty
+     * column=dbcolumn_2,string,REQUIRED,CLIENTSIDE // the anagram
+     * column=dbcolumn_3,dbrow,REQUIRED,LIST,CLIENTSIDE // the solution
+     * column=dbcolumn_4,dbrow,CLIENTSIDE // challenge answer
+     * column=dbcolumn_5,dbrow,CLIENTSIDE // access restrictions (Ex: Access to Lletya required.)
+     *
      * [dbtable_15] // npcs (and their locations)
      * column=dbcolumn_0,npc,REQUIRED,CLIENTSIDE
      * column=dbcolumn_1,npc,CLIENTSIDE // used for multinpcs
@@ -118,7 +141,7 @@ public class BetterClueHelperPlugin extends Plugin {
     @Inject
     private Client client;
 
-    private ClueType clueTypeForObj(int objId) {
+    private ClueSolution clueSolutionForObj(int objId) {
         ItemComposition itemDefinition = client.getItemDefinition(objId);
         int clueRowId = itemDefinition.getIntValue(OBJ_PARAM_CLUE_ROW_ID);
         DBRowConfig dbRowConfig = client.getDBRowConfig(clueRowId);
@@ -126,11 +149,46 @@ public class BetterClueHelperPlugin extends Plugin {
         if (dbRowConfig == null) {
             return null;
         }
-        return ClueType.from(dbRowConfig.getTableID());
+
+        return switch (dbRowConfig.getTableID()) {
+            case ANAGRAM_TABLE -> loadAnagramClueSolution(clueRowId);
+            default -> null;
+        };
+    }
+
+    private AnagramClueSolution loadAnagramClueSolution(int clueRowId) {
+        var difficulty = (Integer) client.getDBTableField(ANAGRAM_TABLE, ANAGRAM_COLUMN_DIFFICULTY, 0, 0);
+        var text = (String) client.getDBTableField(ANAGRAM_TABLE, ANAGRAM_COLUMN_TEXT, 0, 0);
+        var target = loadTargetFromRow((Integer) client.getDBTableField(ANAGRAM_TABLE, ANAGRAM_COLUMN_SOLUTION, 0, 0));
+        var challengeAnswer = client.getDBTableField(ANAGRAM_TABLE, ANAGRAM_COLUMN_CHALLENGE_ANSWER, 0, 0);
+
+        return null;
+    }
+
+    private Target loadTargetFromRow(int tableRowId) {
+        var tableId = client.getDBRowConfig(tableRowId).getTableID();
+        return switch (tableId) {
+            case TARGET_NPC_TABLE -> loadNpcTarget(tableRowId);
+            case TARGET_LOC_TABLE -> loadLocTarget(tableRowId);
+            case TARGET_COORD_GRID_TABLE -> loadCoordGridTarget(tableRowId);
+            default -> null;
+        };
+    }
+
+    private Target loadNpcTarget(int tableRowId) {
+        return null;
+    }
+
+    private Target loadLocTarget(int tableRowId) {
+        return null;
+    }
+
+    private Target loadCoordGridTarget(int tableRowId) {
+        return null;
     }
 
     private enum ClueType {
-        ANAGRAM(4),
+        ANAGRAM(ANAGRAM_TABLE),
         MAP(5),
         CIPHER(6),
         COORDINATE(7),
