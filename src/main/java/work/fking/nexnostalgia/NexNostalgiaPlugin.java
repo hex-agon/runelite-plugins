@@ -96,15 +96,15 @@ public class NexNostalgiaPlugin extends Plugin {
 
     @Subscribe
     public void onChatMessage(ChatMessage event) {
-        if (event.getType() != ChatMessageType.GAMEMESSAGE) {
+        if (event.getType() != ChatMessageType.NPC_SAY) {
             return;
         }
         String text = Text.removeTags(event.getMessage());
 
-        if (!text.startsWith("Nex: ")) {
+        if (!text.startsWith("Nex|")) {
             return;
         }
-        VoiceOver voiceOver = VoiceOver.forTriggerLine(text.substring(5));
+        VoiceOver voiceOver = VoiceOver.forTriggerLine(text.substring(4));
 
         if (voiceOver != null) {
             playVoiceOver(voiceOver);
