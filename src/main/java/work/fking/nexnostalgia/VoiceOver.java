@@ -50,10 +50,6 @@ public enum VoiceOver {
         return triggerLines.get(triggerLine);
     }
 
-    public String trigger() {
-        return triggerLine;
-    }
-
     public String file() {
         return file;
     }
