@@ -13,9 +13,7 @@ import net.runelite.client.util.Text;
 
 import javax.inject.Inject;
 
-@PluginDescriptor(
-        name = "Nex Nostalgia"
-)
+@PluginDescriptor(name = "Nex Nostalgia")
 public class NexNostalgiaPlugin extends Plugin {
 
     private NexClipPlayer clipPlayer;
