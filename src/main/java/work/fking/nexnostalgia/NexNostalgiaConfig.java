@@ -10,6 +10,8 @@ public interface NexNostalgiaConfig extends Config {
 
     String GROUP = "nexNostalgia";
 
+    String ANIM_SMOOTHING = "Animation Smoothing";
+
     @ConfigItem(
             keyName = "volumeGain",
             name = "Volume Gain",
@@ -18,5 +20,14 @@ public interface NexNostalgiaConfig extends Config {
     @Range(min = -25, max = 6)
     default int volumeGain() {
         return 0;
+    }
+
+    @ConfigItem(
+            keyName = "enableAnimSmoothing",
+            name = "Selective Anim Smoothing",
+            description = "Selectively enables animation smoothing for Nex & Blood Reavers animations"
+    )
+    default boolean enableAnimSmoothing() {
+        return false;
     }
 }
