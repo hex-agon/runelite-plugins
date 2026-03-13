@@ -10,8 +10,6 @@ public interface NexNostalgiaConfig extends Config {
 
     String GROUP = "nexNostalgia";
 
-    String ANIM_SMOOTHING = "Animation Smoothing";
-
     @ConfigItem(
             keyName = "volumeGain",
             name = "Volume Gain",
