@@ -4,8 +4,9 @@ import com.google.inject.Provides;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.CommandExecuted;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.AnimationID;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -17,16 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.sound.sampled.LineUnavailableException;
 
 @PluginDescriptor(name = "Nex Nostalgia")
 public class NexNostalgiaPlugin extends Plugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NexNostalgiaPlugin.class);
+    private static final int MAX_CONCURRENT_SOUNDS = 5;
 
-    // during phase transitions there can be up to 3 VOs playing at the same time
-    private static final int MAX_CONCURRENT_SOUNDS = 3;
-
-    private NexClipPlayer clipPlayer;
+    private SoundPlayer soundPlayer;
 
     @Inject
     private Client client;
@@ -42,43 +42,27 @@ public class NexNostalgiaPlugin extends Plugin {
 
     @Override
     protected void startUp() {
-        if (clipPlayer == null || clipPlayer.isShutdown()) {
-            clipPlayer = new NexClipPlayer(MAX_CONCURRENT_SOUNDS);
+        if (soundPlayer == null || soundPlayer.isShutdown()) {
+            try {
+                soundPlayer = new SoundPlayer(MAX_CONCURRENT_SOUNDS);
+            } catch (LineUnavailableException e) {
+                LOGGER.warn("Could not open audio output line, SoundPlayer will be disabled", e);
+            }
         }
         setupAnimSmoothingFilter();
     }
 
     @Override
     protected void shutDown() {
-        clipPlayer.shutdown();
+        if (soundPlayer != null) {
+            soundPlayer.shutdown();
+        }
         tearDownAnimSmoothingFilter();
     }
 
     @Provides
     NexNostalgiaConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(NexNostalgiaConfig.class);
-    }
-
-    @Subscribe
-    public void onCommandExecuted(CommandExecuted command) {
-        var arguments = command.getArguments();
-
-        if (!command.getCommand().equals("vo")) {
-            return;
-        }
-        if (arguments.length < 1) {
-            return;
-        }
-        var voiceOverName = arguments[0].toUpperCase();
-
-        try {
-            var voiceOver = VoiceOver.valueOf(voiceOverName);
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Playing voiceover " + voiceOver, null);
-
-            playVoiceOver(voiceOver);
-        } catch (IllegalArgumentException e) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Unknown voiceover: " + voiceOverName, null);
-        }
     }
 
     @Subscribe
@@ -98,8 +82,20 @@ public class NexNostalgiaPlugin extends Plugin {
         }
     }
 
+    @Subscribe
+    public void onVarbitChanged(VarbitChanged event) {
+        if (event.getVarpId() != VarPlayerID.OPTION_SOUNDS) {
+            return;
+        }
+        if (soundPlayer != null) {
+            soundPlayer.setMasterVolume(client.getVarpValue(VarPlayerID.OPTION_SOUNDS));
+        }
+    }
+
     private void playVoiceOver(VoiceOver voiceOver) {
-        clipPlayer.play(voiceOver, config.volumeGain());
+        if (soundPlayer != null) {
+            soundPlayer.play(voiceOver);
+        }
     }
 
     private boolean isAnimSmoothingPluginEnabled() {
