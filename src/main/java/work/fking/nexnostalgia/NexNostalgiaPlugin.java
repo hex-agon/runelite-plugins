@@ -7,8 +7,13 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginManager;
@@ -35,10 +40,16 @@ public class NexNostalgiaPlugin extends Plugin {
     private NexNostalgiaConfig config;
 
     @Inject
+    private ConfigManager configManager;
+
+    @Inject
     private PluginManager pluginManager;
 
     @Inject
     private AnimationSmoothingPlugin animationSmoothingPlugin;
+
+    @Inject
+    private ChatMessageManager chatMessageManager;
 
     @Override
     protected void startUp() {
@@ -49,7 +60,10 @@ public class NexNostalgiaPlugin extends Plugin {
                 LOGGER.warn("Could not open audio output line, SoundPlayer will be disabled", e);
             }
         }
-        setupAnimSmoothingFilter();
+
+        if (config.enableAnimSmoothing()) {
+            setupAnimSmoothingFilter();
+        }
     }
 
     @Override
@@ -57,12 +71,28 @@ public class NexNostalgiaPlugin extends Plugin {
         if (soundPlayer != null) {
             soundPlayer.shutdown();
         }
-        tearDownAnimSmoothingFilter();
+
+        if (config.enableAnimSmoothing()) {
+            tearDownAnimSmoothingFilter();
+        }
     }
 
     @Provides
     NexNostalgiaConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(NexNostalgiaConfig.class);
+    }
+
+    @Subscribe
+    public void onConfigChanged(ConfigChanged event) {
+        if (!NexNostalgiaConfig.GROUP.equals(event.getGroup())) {
+            return;
+        }
+
+        if (config.enableAnimSmoothing()) {
+            setupAnimSmoothingFilter();
+        } else {
+            tearDownAnimSmoothingFilter();
+        }
     }
 
     @Subscribe
@@ -103,19 +133,23 @@ public class NexNostalgiaPlugin extends Plugin {
     }
 
     private void tearDownAnimSmoothingFilter() {
-        if (!config.enableAnimSmoothing() || isAnimSmoothingPluginEnabled()) {
+        if (isAnimSmoothingPluginEnabled()) {
             return;
         }
         client.setAnimationInterpolationFilter(null);
     }
 
     private void setupAnimSmoothingFilter() {
-        if (!config.enableAnimSmoothing()) {
-            return;
-        }
-
         if (isAnimSmoothingPluginEnabled()) {
-            LOGGER.debug("Skipping setting up the animation filter as the Animation Smoothing plugin is enabled");
+            var formattedMessage = new ChatMessageBuilder()
+                    .append(ChatColorType.HIGHLIGHT)
+                    .append("[Nex Nostalgia] Selective animation was not enabled, Animation Smoothing plugin is active.")
+                    .build();
+
+            chatMessageManager.queue(QueuedMessage.builder()
+                                                  .type(ChatMessageType.CONSOLE)
+                                                  .runeLiteFormattedMessage(formattedMessage)
+                                                  .build());
             return;
         }
         client.setAnimationInterpolationFilter(animId -> {
