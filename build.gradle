@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-def runeLiteVersion = 'latest.integration'
+def runeLiteVersion = 'latest.release'
 
 dependencies {
     compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
@@ -24,7 +24,7 @@ dependencies {
 }
 
 group = 'work.fking.nexnostalgia'
-version = '1.0.0'
+version = '1.1.0'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
