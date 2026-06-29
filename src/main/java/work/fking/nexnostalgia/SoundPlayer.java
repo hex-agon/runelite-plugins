@@ -24,8 +24,8 @@ public class SoundPlayer {
 
     private static final AudioFormat OUTPUT_FORMAT = new AudioFormat(44100, 16, 2, true, false);
 
-    private static final int MIN_VOLUME_PERCENT = 0;
-    private static final int MAX_VOLUME_PERCENT = 125;
+    public static final int MIN_VOLUME_PERCENT = 0;
+    public static final int MAX_VOLUME_PERCENT = 125;
 
     private static final int BUFFER_FRAMES = 1024;
     private static final int BUFFER_SIZE = BUFFER_FRAMES * OUTPUT_FORMAT.getFrameSize();
@@ -34,6 +34,7 @@ public class SoundPlayer {
     private final BlockingQueue<PlayingVoiceOver> readyQueue;
 
     private final AtomicInteger masterVolume = new AtomicInteger(100);
+
     private volatile boolean shutdown = false;
 
     private final Thread loaderThread;

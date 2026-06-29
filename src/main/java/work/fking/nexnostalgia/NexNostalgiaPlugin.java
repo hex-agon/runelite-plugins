@@ -7,6 +7,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
@@ -37,10 +38,10 @@ public class NexNostalgiaPlugin extends Plugin {
     private Client client;
 
     @Inject
-    private NexNostalgiaConfig config;
+    private ClientThread clientThread;
 
     @Inject
-    private ConfigManager configManager;
+    private NexNostalgiaConfig config;
 
     @Inject
     private PluginManager pluginManager;
@@ -56,6 +57,7 @@ public class NexNostalgiaPlugin extends Plugin {
         if (soundPlayer == null || soundPlayer.isShutdown()) {
             try {
                 soundPlayer = new SoundPlayer(MAX_CONCURRENT_SOUNDS);
+                clientThread.invokeLater(this::updateSoundPlayerVolume);
             } catch (LineUnavailableException e) {
                 LOGGER.warn("Could not open audio output line, SoundPlayer will be disabled", e);
             }
@@ -88,10 +90,17 @@ public class NexNostalgiaPlugin extends Plugin {
             return;
         }
 
-        if (config.enableAnimSmoothing()) {
-            setupAnimSmoothingFilter();
-        } else {
-            tearDownAnimSmoothingFilter();
+        switch (event.getKey()) {
+            case NexNostalgiaConfig.KEY_EXTRA_VO_VOLUME:
+                clientThread.invokeLater(this::updateSoundPlayerVolume);
+                break;
+            case NexNostalgiaConfig.KEY_ANIM_SMOOTHING:
+                if (config.enableAnimSmoothing()) {
+                    setupAnimSmoothingFilter();
+                } else {
+                    tearDownAnimSmoothingFilter();
+                }
+                break;
         }
     }
 
@@ -117,9 +126,16 @@ public class NexNostalgiaPlugin extends Plugin {
         if (event.getVarpId() != VarPlayerID.OPTION_SOUNDS) {
             return;
         }
-        if (soundPlayer != null) {
-            soundPlayer.setMasterVolume(client.getVarpValue(VarPlayerID.OPTION_SOUNDS));
+        updateSoundPlayerVolume();
+    }
+
+    // Must be called from within client thread
+    private void updateSoundPlayerVolume() {
+        if (soundPlayer == null) {
+            return;
         }
+        var soundVolume = client.getVarpValue(VarPlayerID.OPTION_SOUNDS);
+        soundPlayer.setMasterVolume(soundVolume + config.extraVoVolume());
     }
 
     private void playVoiceOver(VoiceOver voiceOver) {
