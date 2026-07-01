@@ -9,6 +9,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -184,7 +185,8 @@ public class SoundPlayer {
     private AudioInputStream toPcmStream(InputStream stream) {
         AudioInputStream rawStream = null;
         try {
-            rawStream = AudioSystem.getAudioInputStream(stream);
+            var bufferedStream = new BufferedInputStream(stream);
+            rawStream = AudioSystem.getAudioInputStream(bufferedStream);
 
             return AudioSystem.getAudioInputStream(OUTPUT_FORMAT, rawStream);
         } catch (UnsupportedAudioFileException | IOException e) {

@@ -4,6 +4,7 @@ import com.google.inject.Provides;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.VarPlayerID;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.sound.sampled.LineUnavailableException;
 
 @PluginDescriptor(name = "Nex Nostalgia")
@@ -51,6 +53,10 @@ public class NexNostalgiaPlugin extends Plugin {
 
     @Inject
     private ChatMessageManager chatMessageManager;
+
+    @Inject
+    @Named("developerMode")
+    private boolean developerMode;
 
     @Override
     protected void startUp() {
@@ -82,6 +88,28 @@ public class NexNostalgiaPlugin extends Plugin {
     @Provides
     NexNostalgiaConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(NexNostalgiaConfig.class);
+    }
+
+    @Subscribe
+    public void onCommandExecuted(CommandExecuted command) {
+        var arguments = command.getArguments();
+
+        if (!developerMode || !command.getCommand().equals("vo")) {
+            return;
+        }
+        if (arguments.length < 1) {
+            return;
+        }
+        var voiceOverName = arguments[0].toUpperCase();
+
+        try {
+            var voiceOver = VoiceOver.valueOf(voiceOverName);
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Playing voiceover " + voiceOver, null);
+
+            playVoiceOver(voiceOver);
+        } catch (IllegalArgumentException e) {
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Unknown voiceover: " + voiceOverName, null);
+        }
     }
 
     @Subscribe
