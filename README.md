@@ -3,6 +3,9 @@ A plugin that adds nex voice-overs akin to the original 2011 RuneScape nex relea
 
 ### Changelog
 
+#### V1.1.1
+* Fix an oopsie that broke the plugin when running from the plugin-hub
+
 #### V1.1.0
 * Reworked how audio cues are played, improving compatibility with certain linux desktop environments.
 * The volume control has moved from being a plugin config to being bound to the in game sound volume (Shoutout to mika).
