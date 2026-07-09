@@ -151,7 +151,8 @@ public class NexNostalgiaPlugin extends Plugin {
 
     @Subscribe
     public void onVarbitChanged(VarbitChanged event) {
-        if (event.getVarpId() != VarPlayerID.OPTION_SOUNDS) {
+        var varpId = event.getVarpId();
+        if (varpId != VarPlayerID.OPTION_SOUNDS && varpId != VarPlayerID.OPTION_MASTER_VOLUME) {
             return;
         }
         updateSoundPlayerVolume();
@@ -162,8 +163,11 @@ public class NexNostalgiaPlugin extends Plugin {
         if (soundPlayer == null) {
             return;
         }
+        var masterVolume = client.getVarpValue(VarPlayerID.OPTION_MASTER_VOLUME);
         var soundVolume = client.getVarpValue(VarPlayerID.OPTION_SOUNDS);
-        soundPlayer.setMasterVolume(soundVolume + config.extraVoVolume());
+        var effectiveSoundVolume = soundVolume * masterVolume / 100;
+
+        soundPlayer.setMasterVolume(effectiveSoundVolume + config.extraVoVolume());
     }
 
     private void playVoiceOver(VoiceOver voiceOver) {
