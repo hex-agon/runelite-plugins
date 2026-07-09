@@ -3,6 +3,9 @@ A plugin that adds nex voice-overs akin to the original 2011 RuneScape nex relea
 
 ### Changelog
 
+#### V1.1.2
+* Take into account the master volume option when computing the final volume, note that the 'Extra Volume' plugin option is not affected by this.
+
 #### V1.1.1
 * Fix an oopsie that broke the plugin when running from the plugin-hub
 
